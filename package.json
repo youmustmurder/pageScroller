@@ -1,0 +1,41 @@
+{
+  "name": "webpack-configurate",
+  "version": "1.0.0",
+  "description": "HTML template",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "webpack --config webpack.dev.js",
+    "build-only": "webpack --config webpack.prod.js",
+    "build": "del-cli dist && webpack --config webpack.prod.js --progress && html dist/*.html --indent-size 2",
+    "watch": "webpack --mode development --watch --config webpack.dev.js",
+    "start": "webpack-dev-server --mode development --open --config webpack.dev.js",
+    "start-analyze": "del-cli dist && webpack --config webpack.analyze.js --progress && html dist/*.html --indent-size 2",
+    "beautify": "html dist/*.html --indent-size 2",
+    "clear": "del-cli dist"
+  },
+  "dependencies": {
+    "webpack-bundle-analyzer": "^3.0.3",
+    "webpack-merge": "^4.1.5"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.3.4",
+    "@babel/plugin-proposal-class-properties": "^7.1.0",
+    "@babel/preset-env": "^7.1.0",
+    "babel-loader": "^8.0.4",
+    "copy-webpack-plugin": "^4.5.2",
+    "css-loader": "^1.0.0",
+    "cssnano": "^4.1.4",
+    "del-cli": "^1.1.0",
+    "html-cli": "^1.0.0",
+    "html-webpack-plugin": "^3.2.0",
+    "mini-css-extract-plugin": "^0.4.3",
+    "node-sass": "^4.9.3",
+    "postcss-loader": "^3.0.0",
+    "precss": "^4.0.0",
+    "raw-loader": "^0.5.1",
+    "uglifyjs-webpack-plugin": "^2.0.1",
+    "webpack": "^4.20.2",
+    "webpack-cli": "^3.1.2",
+    "webpack-dev-server": "3.2.1"
+  }
+}

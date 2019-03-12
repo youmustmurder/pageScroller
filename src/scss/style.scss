@@ -1,0 +1,49 @@
+html,
+body {
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+}
+
+.page-scroller__section {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    backface-visibility: hidden;
+    background: #fff;
+    transition: 0.3s all ease-out;
+    &:nth-child(1) {
+        background: red;
+    }
+    &:nth-child(2) {
+        background: black;
+    }
+    &:nth-child(3) {
+        background: blue;
+    }
+    &:nth-child(4) {
+        background: blueviolet;
+    }
+}
+
+.scrollable {
+    overflow-y: scroll;
+    height: 100%;
+}
+
+.content {
+    top: 0;
+    position: absolute;
+    left: 0;
+    .header {
+        padding: 100px 15px;
+    }
+    .page {
+        padding: 100px 15px;
+        p {
+            font-size: 18px;
+            line-height: 32px;
+            color: #fff;
+        }
+    }
+}
