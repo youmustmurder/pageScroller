@@ -1,0 +1,13 @@
+.page-scroller {
+    display: flex;
+    flex-direction: column;
+    transition: all 1000ms ease 0s;
+    &.page-scroller_horizontal {
+        flex-direction: row;
+    }
+}
+
+.page-scroller__section {
+    position: relative;
+    height: 100vh;
+}

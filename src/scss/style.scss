@@ -1,3 +1,5 @@
+@import './page-scroller.scss';
+
 html,
 body {
     overflow: hidden;
@@ -6,12 +8,6 @@ body {
 }
 
 .page-scroller__section {
-    position: absolute;
-    height: 100%;
-    width: 100%;
-    backface-visibility: hidden;
-    background: #fff;
-    transition: 0.3s all ease-out;
     &:nth-child(1) {
         background: red;
     }
@@ -26,22 +22,14 @@ body {
     }
 }
 
-.scrollable {
-    overflow-y: scroll;
-    height: 100%;
-}
-
 .content {
-    top: 0;
-    position: absolute;
-    left: 0;
     .header {
         padding: 100px 15px;
     }
     .page {
         padding: 100px 15px;
         p {
-            font-size: 18px;
+            font-size: 24px;
             line-height: 32px;
             color: #fff;
         }

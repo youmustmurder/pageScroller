@@ -1,1 +1,14 @@
-body,html{overflow:hidden;margin:0;padding:0}.page-scroller__section{position:absolute;height:100%;width:100%;-webkit-backface-visibility:hidden;backface-visibility:hidden;background:#fff;transition:all .3s ease-out}.page-scroller__section:first-child{background:red}.page-scroller__section:nth-child(2){background:#000}.page-scroller__section:nth-child(3){background:#00f}.page-scroller__section:nth-child(4){background:#8a2be2}.scrollable{overflow-y:scroll;height:100%}.content{top:0;position:absolute;left:0;}.content .header,.content .page{padding:100px 15px}.content .page p{font-size:18px;line-height:32px;color:#fff}
+.page-scroller {
+    display: flex;
+    flex-direction: column;
+    transition: all 1000ms ease 0s
+}
+
+.page-scroller.page-scroller_horizontal {
+        flex-direction: row;
+    }
+
+.page-scroller__section {
+    position: relative;
+    height: 100vh;
+}body,html{overflow:hidden;margin:0;padding:0}.page-scroller__section:first-child{background:red}.page-scroller__section:nth-child(2){background:#000}.page-scroller__section:nth-child(3){background:#00f}.page-scroller__section:nth-child(4){background:#8a2be2}.content .header,.content .page{padding:100px 15px}.content .page p{font-size:24px;line-height:32px;color:#fff}

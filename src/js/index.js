@@ -2,8 +2,7 @@ import PageScroller from './pageScroller';
 
 window.onload = () => {
     var scroller = new PageScroller('.page-scroller', {
-        scrollingSpeed: 100,
+        loopBottom: true,
     });
-    scroller.setScrollDelay(300);
     scroller.init();
 }

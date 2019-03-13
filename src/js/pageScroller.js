@@ -1,4 +1,4 @@
-function indexInParent(node) {
+const indexInParent = (node) => {
     var children = node.parentNode.childNodes;
     var num = 0;
     for (var i=0; i<children.length; i++) {
@@ -7,6 +7,21 @@ function indexInParent(node) {
     }
     return -1;
 }
+
+const debounce = (func, wait, immediate) => {
+    var timeout;
+    return () => {
+        const context = this, args = arguments;
+        const later = function() {
+            timeout = null;
+            if (!immediate) func.apply(context, args);
+        };
+        const callNow = immediate && !timeout;
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+        if (callNow) func.apply(context, args);
+    };
+};
 
 class PageScroller {
     constructor(container, opts = {}) {
@@ -47,7 +62,7 @@ class PageScroller {
             ...opts
         };
         this.prevTime = new Date().getTime();
-        this.zIndex = this.container.querySelectorAll(this.options.sectionSelector).length; 
+        this.indexActiveSection = 0;
     }
 
     init = () => {
@@ -55,24 +70,34 @@ class PageScroller {
 
         this.setAllowScrolling(true);
 
+        this.setSizeNodes();
+        window.addEventListener('resize', debounce(() => {
+            this.setSizeNodes();
+        }, 200, false));
+
+        (this.options.direction == 'horizontal') ? this.container.classList.add('page-scroller_horizontal') : null;
+
         let sections = this.container.querySelectorAll(this.options.sectionSelector);
-
         Array.prototype.forEach.call(sections, (section, index) => {
-            section.setAttribute('data-index', index);
-            section.style.zIndex = this.zIndex;
-
+            section.style.height = window.innerHeight + 'px';
             (!index && this.container.querySelectorAll(this.options.sectionSelector+'.active').length === 0) ? section.classList.add('active') : null;
 
             (typeof this.options.anchors[index] !== 'undefined') ? section.setAttribute('data-anchor', this.options.anchors[index]) : null;
-
-            (this.options.verticalCentered && !section.classList.contains('scrollable')) ? this.addTableClass(section) : null;
-
-            --this.zIndex;
         });
     }
     
     setScrollDelay = (value) => {
         this.scrollDelay = value;
+    }
+
+    setSizeNodes = () => {
+        let sections = this.container.querySelectorAll(this.options.sectionSelector);
+        this.setContainerTransform(this.indexActiveSection);
+        (this.options.direction == 'horizontal') ? this.container.style.width = window.innerWidth * sections.length + 'px' : null;
+        Array.prototype.forEach.call(sections, (section) => {
+            section.style.height = window.innerHeight + 'px';
+            section.style.width = window.innerWidth + 'px';
+        });
     }
 
     setMouseWheelScrolling = (value) => {
@@ -264,7 +289,7 @@ class PageScroller {
             activeSection: this.container.querySelector(this.options.sectionSelector + '.active'),
             anchorLink: destination.getAttribute('data-anchor'),
             sectionIndex: indexInParent(destination),
-            toMove: destination,
+            //toMove: destination,
             yMovement: this.getYmovement(destination),
             leavingSection: indexInParent(this.container.querySelector(this.options.sectionSelector + '.active')) + 1
         };
@@ -279,6 +304,9 @@ class PageScroller {
             this.setUrlHash(v.anchorLink, v.sectionIndex);
         }
 
+        this.setContainerTransform(v.sectionIndex);
+        this.indexActiveSection = v.sectionIndex;
+
         v.destination.classList.add('active');
         Array.prototype.forEach.call(v.destination.parentNode.children, function(child){
             if (child !== v.destination) {
@@ -286,25 +314,11 @@ class PageScroller {
             }
         });
 
-        v.sectionsToMove = this.getSectionsToMove(v);
-
-        if (v.yMovement === 'down') {
-            v.translate3d = this.getTranslate3d();
-            v.scrolling = '-100%';
-
-            v.animateSection = v.activeSection;
-        } else {
-            v.translate3d = 'translate3d(0px,0px,0px)';
-            v.scrolling = '0';
-            
-            v.animateSection = destination;
-        }
-
         (typeof this.options.onLeave == 'function') ? this.options.onLeave.call(this, v.leavingSection, (v.sectionIndex + 1), v.yMovement) : null;
 
         this.performMovement(v);
 
-        this.activeMenuElement(v.anchorLink);
+        //this.activeMenuElement(v.anchorLink);
         //this.activenavDots(v.anchorLink, v.sectionIndex);
         this.lastScrolledDestiny = v.anchorLink;
 
@@ -336,12 +350,8 @@ class PageScroller {
     }
 
     performMovement = (v) => {
-        this.transformContainer(v.animateSection, v.translate3d, v.animated);
-        Array.prototype.forEach.call(v.sectionsToMove, (section) => {
-            this.transformContainer(section, v.translate3d, v.animated);
-        });
-
         setTimeout(() => {
+            (v.destination.classList.contains('scrollable')) ? v.destination.style.overflowY = 'auto' : null; 
             this.afterSectionLoads(v);
         }, this.options.scrollingSpeed);
     }
@@ -350,24 +360,9 @@ class PageScroller {
 
     }
 
-    transformContainer = (element, translate3d, animated) => {
-        (animated) ? element.classList.add('easing') : element.classList.remove('easing');
-        element.style.transform = translate3d;
-        /* getTransforms */
-    }
-
     afterSectionLoads = (v) => {
         if (typeof this.options.afterLoad == 'function') {
             this.options.afterLoad.call(this, v.anchorLink, (v.sectionIndex + 1));
-        }
-    }
-
-    getTransforms = (translate3d) => {
-        return {
-            '-webkit-transform': translate3d,
-            '-moz-transform': translate3d,
-            '-ms-translate': translate3d,
-            'transform': translate3d
         }
     }
 
@@ -423,15 +418,12 @@ class PageScroller {
         return Math.ceil(sum/number);
     }
 
-    getTranslate3d = () => {
-        if (this.options.direction !== 'vertical') {
-            return 'translate3d(-100%, 0px, 0px)';
+    setContainerTransform = (sectionIndex) => {
+        if (this.options.direction == 'horizontal') {
+            this.container.style.transform = `translate3d(-${ window.innerWidth*sectionIndex }px, 0px, 0px)`;
+        } else {
+            this.container.style.transform = `translate3d(0px, -${ window.innerHeight*sectionIndex }px, 0px)`;
         }
-        return 'translate3d(0px, -100%, 0px)';
-    }
-
-    addTableClass = () => {
-
     }
 }
 
