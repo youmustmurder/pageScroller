@@ -71,8 +71,8 @@ class PageScroller {
         });
     }
     
-    setScrollingSpeed = (value) => {
-        this.options.scrollingSpeed = value;
+    setScrollDelay = (value) => {
+        this.scrollDelay = value;
     }
 
     setMouseWheelScrolling = (value) => {
@@ -101,34 +101,39 @@ class PageScroller {
 
     addTouchHandler = () => {
         if (this.isTouch) {
-            container.off('touchstart pointerdown').on('touchstart pointerdown', this.touchStartHandler);
-            container.off('touchmove pointermove').on('touchmove pointermove', this.touchMoveHandler);
+            this.container.addEventListener('touchstart', this.touchStartHandler, false);
+            this.container.addEventListener('pointerdown', this.touchStartHandler, false);
+            this.container.addEventListener('touchmove', this.touchMoveHandler, false);
+            this.container.addEventListener('pointermove', this.touchMoveHandler, false);
         }
     }
 
     removeTouchHandler = () => {
-        if (isTouch) {
-            container.off('touchstart pointerdown');
-            container.off('touchmove pointermove');
+        if (this.isTouch) {
+            this.container.removeEventListener('touchstart', this.touchStartHandler, false);
+            this.container.removeEventListener('pointerdown', this.touchStartHandler, false);
+            this.container.removeEventListener('touchmove', this.touchMoveHandler, false);
+            this.container.removeEventListener('pointermove', this.touchMoveHandler, false);
         }
     }
 
     isReallyTouch = (e) => {
-        return typeof e.poinetType === 'undefined' || e.poinetType != 'mouse';
+        return true;
+        //return typeof(e.pointerType) === 'undefined' || e.pointerType != 'mouse';
     }
 
     /*
         get pageX, pageY
     */
     getEventsPage = (e) => {
-        var events = new Array();
-
-        events.y = (typeof e.pageY !== 'undefined' && (e.pageY || e.pageX) ? e.pageY : e.touches[0].pageY);
-        events.x = (typeof e.pageX !== 'undefined' && (e.pageY || e.pageX) ? e.pageX : e.touches[0].pageX);
+        return {
+            y: (typeof e.pageY !== 'undefined' && (e.pageY || e.pageX) ? e.pageY : e.touches[0].pageY),
+            x: (typeof e.pageX !== 'undefined' && (e.pageY || e.pageX) ? e.pageX : e.touches[0].pageX)
+        }
     }
 
     touchStartHandler = (event) => {
-        var e = event.originalEvent;
+        var e = event.originalEvent || event;
 
         if (this.isReallyTouch(e)) {
             var touchEvents = this.getEventsPage(e);
@@ -137,35 +142,14 @@ class PageScroller {
         }
     }
 
-    checkParentForNormalScrollElement = (el, hop = 0) => {
-        var parent = el.parentNode();
-
-        if (hop < this.options.normallScrollElementTouchThreshold && parent == this.options.normalScrollElements) {
-            return true;
-        } else if (hop == this.options.normallScrollElementTouchThreshold) {
-            return false;
-        } else {
-            return this.checkParentForNormalScrollElement(parent, ++hop);
-        }
-    }
-
-    isScrollable = (activeSection) => {
-        return (activeSection.classList.contains('scrollable')) ? activeSection : undefined;
-    }
-
-    isMoving = () => {
-        var timeNow = new Date().getTime();
-        return (timeNow - this.lastAnimation < this.scrollDelay + this.options.scrollingSpeed) ? true : false;
-    }
-
     touchMoveHandler = (event) => {
-        var e = event.originalEvent;
+        var e = event.originalEvent || event;
 
-        if (!this.checkParentForNormalScrollElement(event.target) && this.isReallyTouch(e)) {
-            var activeSection = container.querySelector(this.opts.sectionSelector + '.active'),
+        if (this.isReallyTouch(e)) {
+            var activeSection = this.container.querySelector(this.options.sectionSelector + '.active'),
                 scrollable = this.isScrollable(activeSection);
 
-            if (!scrollable.length) {
+            if (typeof scrollable == 'undefined') {
                 event.preventDefault();
             }
 
@@ -173,7 +157,7 @@ class PageScroller {
                 var touchEvents = this.getEventsPage(e);
                 this.touchEndY = touchEvents.y;
                 this.touchEndX = touchEvents.x;
-                let containerRect = this.container.getBoundingClientRect().width;
+                let containerRect = this.container.getBoundingClientRect();
 
                 if (this.options.direction === 'horizontal' && Math.abs(this.touchStartX - this.touchEndX) > (Math.abs(this.touchStartY - this.touchEndY))) {
                     if (Math.abs(this.touchStartX - this.touchEndX) > (containerRect.width / 100 * this.options.touchSensitivity)) {
@@ -194,6 +178,26 @@ class PageScroller {
                 }
             }
         }
+    }
+
+    checkParentForNormalScrollElement = (el, hop = 0) => {
+        var parent = el.parentNode;
+        if (hop < this.options.normallScrollElementTouchThreshold && parent == this.options.normalScrollElements) {
+            return true;
+        } else if (hop == this.options.normallScrollElementTouchThreshold) {
+            return false;
+        } else {
+            return this.checkParentForNormalScrollElement(parent, ++hop);
+        }
+    }
+
+    isScrollable = (activeSection) => {
+        return (activeSection.classList.contains('scrollable')) ? activeSection : undefined;
+    }
+
+    isMoving = () => {
+        var timeNow = new Date().getTime();
+        return (timeNow - this.lastAnimation < this.scrollDelay + this.options.scrollingSpeed) ? true : false;
     }
 
     scrolling = (type, scrollable) => {
