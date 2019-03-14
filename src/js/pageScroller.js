@@ -41,20 +41,13 @@ class PageScroller {
             verticalCentered: true,
             anchors: [],
             scrollingSpeed: 700,
-            easing: 'easeInQuart',
             loopBottom: false,
             loopTop: false,
-            navigation: {
-                textColor: '#000',
-                bulletsColor: '#000',
-                position: 'right',
-                tooltips: []
-            },
+            navigation: false,
             normalScrollElements: null,
             normallScrollElementTouchThreshold: 5,
             touchSensitivity: 5,
             keyboardScrolling: true,
-            sectionSelector: '.page-scroller__section',
             animationAnchor: false,
             afterLoad: null,
             onLeave: null,
@@ -67,6 +60,7 @@ class PageScroller {
 
     init = () => {
         this.container.style.overflow = 'hidden';
+        this.container.classList.add('page-scroller_easing');
 
         this.setAllowScrolling(true);
 
@@ -77,13 +71,18 @@ class PageScroller {
 
         (this.options.direction == 'horizontal') ? this.container.classList.add('page-scroller_horizontal') : null;
 
-        let sections = this.container.querySelectorAll(this.options.sectionSelector);
+        let sections = this.container.querySelectorAll('.page-scroller__section');
         Array.prototype.forEach.call(sections, (section, index) => {
             section.style.height = window.innerHeight + 'px';
-            (!index && this.container.querySelectorAll(this.options.sectionSelector+'.active').length === 0) ? section.classList.add('active') : null;
-
-            (typeof this.options.anchors[index] !== 'undefined') ? section.setAttribute('data-anchor', this.options.anchors[index]) : null;
+            (!index && this.container.querySelectorAll('.page-scroller__section.page-scroller__section_active').length === 0) ? section.classList.add('page-scroller__section_active') : null;
         });
+        
+        (this.options.navigation) ? this.addNavigation(sections) : null;
+        
+        this.scrollToAnchor();
+        this.addKeyboardHandler();
+
+        (typeof this.options.afterRender == 'function') ? this.options.afterRender.call(this) : null;
     }
     
     setScrollDelay = (value) => {
@@ -91,13 +90,17 @@ class PageScroller {
     }
 
     setSizeNodes = () => {
-        let sections = this.container.querySelectorAll(this.options.sectionSelector);
-        this.setContainerTransform(this.indexActiveSection);
+        let sections = this.container.querySelectorAll('.page-scroller__section');
+        this.setContainerTransform(this.indexActiveSection, true);
         (this.options.direction == 'horizontal') ? this.container.style.width = window.innerWidth * sections.length + 'px' : null;
         Array.prototype.forEach.call(sections, (section) => {
             section.style.height = window.innerHeight + 'px';
             section.style.width = window.innerWidth + 'px';
         });
+    }
+
+    addKeyboardHandler = () => {
+        document.addEventListener('keydown', this.handleKeyboard);
     }
 
     setMouseWheelScrolling = (value) => {
@@ -142,6 +145,35 @@ class PageScroller {
         }
     }
 
+    handleKeyboard = (e) => {
+        if (this.options.keyboardScrolling && !this.isMoving()) {
+            switch(e.which) {
+                case 38:
+                case 33:
+                case 37:
+                    this.moveSectionUp();
+                    break;
+
+                case 40:
+                case 34:
+                case 39:
+                    this.moveSectionDown();
+                    break;
+
+                case 36:
+                    this.moveTo(1);
+                    break;
+
+                case 35:
+                    this.moveTo(this.container.querySelectorAll('.page-scroller__section').length);
+                    break;
+
+                default:
+                    return;
+            }
+        }
+    }
+
     isReallyTouch = (e) => {
         return true;
         //return typeof(e.pointerType) === 'undefined' || e.pointerType != 'mouse';
@@ -171,7 +203,7 @@ class PageScroller {
         var e = event.originalEvent || event;
 
         if (this.isReallyTouch(e)) {
-            var activeSection = this.container.querySelector(this.options.sectionSelector + '.active'),
+            var activeSection = this.container.querySelector('.page-scroller__section.page-scroller__section_active'),
                 scrollable = this.isScrollable(activeSection);
 
             if (typeof scrollable == 'undefined') {
@@ -217,7 +249,7 @@ class PageScroller {
     }
 
     isScrollable = (activeSection) => {
-        return (activeSection.classList.contains('scrollable')) ? activeSection : undefined;
+        return (activeSection.classList.contains('page-scroller__section_scrollable')) ? activeSection : undefined;
     }
 
     isMoving = () => {
@@ -257,9 +289,9 @@ class PageScroller {
     }
 
     moveSectionDown = () => {
-        let next = this.container.querySelector(this.options.sectionSelector + '.active').nextElementSibling;
+        let next = this.container.querySelector('.page-scroller__section.page-scroller__section_active').nextElementSibling;
 
-        (next == null && this.options.loopBottom) ? next = this.container.querySelector(this.options.sectionSelector + ':first-child') : null;
+        (next == null && this.options.loopBottom) ? next = this.container.querySelector('.page-scroller__section:first-child') : null;
 
         if (next != null) {
             this.scrollPage(next);
@@ -267,31 +299,38 @@ class PageScroller {
     }
 
     moveSectionUp = () => {
-        let prev = this.container.querySelector(this.options.sectionSelector + '.active').previousElementSibling;
-        (prev == null && this.options.loopTop) ? prev = this.container.querySelector(this.options.sectionSelector + ':last-child') : null;
+        let prev = this.container.querySelector('.page-scroller__section.page-scroller__section_active').previousElementSibling;
+        (prev == null && this.options.loopTop) ? prev = this.container.querySelector('.page-scroller__section:last-child') : null;
 
         if (prev != null) {
             this.scrollPage(prev);
         }
     }
 
+    moveTo = (sectionIndex) => {
+        let sections = this.container.querySelectorAll('.page-scroller__section');
+        if (sectionIndex <= sections.length) {
+            this.scrollPage(sections[sectionIndex-1]);
+        }
+    }
+
     getYmovement = (destiny) => {
-        let fromIndex = indexInParent(this.container.querySelector(this.options.sectionSelector + '.active')),
+        let fromIndex = indexInParent(this.container.querySelector('.page-scroller__section.page-scroller__section_active')),
             toIndex = indexInParent(destiny);
 
         return (fromIndex > toIndex) ? 'up' : 'down';
     }
 
-    scrollPage = (destination, animated) => {
+    scrollPage = (destination, animated = true) => {
         var v = {
             destination: destination,
-            animated: animated || true,
-            activeSection: this.container.querySelector(this.options.sectionSelector + '.active'),
+            animated: animated,
+            activeSection: this.container.querySelector('.page-scroller__section.page-scroller__section_active'),
             anchorLink: destination.getAttribute('data-anchor'),
             sectionIndex: indexInParent(destination),
             //toMove: destination,
             yMovement: this.getYmovement(destination),
-            leavingSection: indexInParent(this.container.querySelector(this.options.sectionSelector + '.active')) + 1
+            leavingSection: indexInParent(this.container.querySelector('.page-scroller__section.page-scroller__section_active')) + 1
         };
 
         if (v.activeSection == destination) {
@@ -301,20 +340,20 @@ class PageScroller {
         v.destination.scrollTop = 0;
 
         if (typeof v.anchorLink !== 'undefined') {
-            this.setUrlHash(v.anchorLink, v.sectionIndex);
+            this.setUrlHash(v.anchorLink);
         }
 
-        this.setContainerTransform(v.sectionIndex);
+        (typeof this.options.onLeave == 'function') ? this.options.onLeave.call(this, v.leavingSection, (v.sectionIndex + 1), v.yMovement) : null;
+
+        this.setContainerTransform(v.sectionIndex, v.animated);
         this.indexActiveSection = v.sectionIndex;
 
-        v.destination.classList.add('active');
+        v.destination.classList.add('page-scroller__section_active');
         Array.prototype.forEach.call(v.destination.parentNode.children, function(child){
             if (child !== v.destination) {
-                child.classList.remove('active');
+                child.classList.remove('page-scroller__section_active');
             }
         });
-
-        (typeof this.options.onLeave == 'function') ? this.options.onLeave.call(this, v.leavingSection, (v.sectionIndex + 1), v.yMovement) : null;
 
         this.performMovement(v);
 
@@ -326,44 +365,23 @@ class PageScroller {
         this.lastAnimation = timeNow;
     }
 
-    setUrlHash = () => {
-
-    }
-
     getSectionsToMove = (v) => {
         var sectionToMove;
 
         if (v.yMovement === 'down') {
-            sectionToMove = Array.prototype.filter.call(this.container.querySelectorAll(this.options.sectionSelector), (item, index) => {
+            sectionToMove = Array.prototype.filter.call(this.container.querySelectorAll('.page-scroller__section'), (item, index) => {
                 if (index < indexInParent(v.destination)) {
                     return item;
                 }
             });
         } else {
-            sectionToMove = Array.prototype.filter.call(this.container.querySelectorAll(this.options.sectionSelector), (item, index) => {
+            sectionToMove = Array.prototype.filter.call(this.container.querySelectorAll('.page-scroller__section'), (item, index) => {
                 if (index > indexInParent(v.destination)) {
                     return item;
                 }
             });
         }
         return sectionToMove;
-    }
-
-    performMovement = (v) => {
-        setTimeout(() => {
-            (v.destination.classList.contains('scrollable')) ? v.destination.style.overflowY = 'auto' : null; 
-            this.afterSectionLoads(v);
-        }, this.options.scrollingSpeed);
-    }
-
-    activeMenuElement = () => {
-
-    }
-
-    afterSectionLoads = (v) => {
-        if (typeof this.options.afterLoad == 'function') {
-            this.options.afterLoad.call(this, v.anchorLink, (v.sectionIndex + 1));
-        }
     }
 
     mouseWheelHandler = (e) => {
@@ -389,7 +407,7 @@ class PageScroller {
         }
 
         if (!this.isMoving()) {
-            var activeSection = this.container.querySelector(this.options.sectionSelector + '.active'),
+            var activeSection = this.container.querySelector('.page-scroller__section.page-scroller__section_active'),
                 scrollable = this.isScrollable(activeSection),
                 averageEnd = this.getEverage(this.scrollings, 10),
                 averageMiddle = this.getEverage(this.scrollings, 70),
@@ -418,12 +436,71 @@ class PageScroller {
         return Math.ceil(sum/number);
     }
 
-    setContainerTransform = (sectionIndex) => {
+    setContainerTransform = (sectionIndex, animated = true) => {
+        (animated) ? this.container.classList.add('page-scroller_easing') : this.container.classList.remove('page-scroller_easing');
         if (this.options.direction == 'horizontal') {
             this.container.style.transform = `translate3d(-${ window.innerWidth*sectionIndex }px, 0px, 0px)`;
         } else {
             this.container.style.transform = `translate3d(0px, -${ window.innerHeight*sectionIndex }px, 0px)`;
         }
+    }
+
+    /*
+        hooks
+    */
+    performMovement = (v) => {
+        setTimeout(() => {
+            (v.destination.classList.contains('page-scroller__section_scrollable')) ? v.destination.style.overflowY = 'auto' : null; 
+            this.afterSectionLoads(v);
+        }, this.options.scrollingSpeed);
+    }
+
+    afterSectionLoads = (v) => {
+        if (typeof this.options.afterLoad == 'function') {
+            this.options.afterLoad.call(this, v.anchorLink, (v.sectionIndex + 1));
+        }
+    }
+
+    /*
+        anchor
+    */
+    scrollToAnchor = (animated) => {
+        let hash = window.location.hash.replace('#', '');
+        let section = this.container.querySelector('.page-scroller__section[data-anchor="'+hash+'"]');
+        (section != null) ? this.scrollPage(section, animated || this.options.animationAnchor) : null;
+    }
+
+    setUrlHash = (anchorLink) => {
+        location.hash = anchorLink;
+    }
+
+    activeMenuElement = () => {
+
+    }
+
+    addNavigation = (sections) => {
+        let nav = document.createElement('div');
+        nav.classList.add('page-scroller__nav');
+        nav.classList.add('page-scroller-nav');
+        let ul = document.createElement('ul');
+        Array.prototype.forEach.call(sections, (section, index) => {
+            let sectionAnchor = section.getAttribute("data-anchor");
+            let li = document.createElement('li');
+            let a = document.createElement('a');
+            a.setAttribute('href', '#${ sectionAnchor }');
+            a.addEventListener('click', (e) => this.handlerClickNav(e, sectionAnchor));
+            li.appendChild(a);
+            ul.appendChild(li);
+        });
+
+        nav.appendChild(ul);
+        document.querySelector('body').appendChild(nav);
+    }
+
+    handlerClickNav = (e, sectionAnchor) => {
+        e.preventDefault();
+        this.setUrlHash(sectionAnchor);
+        this.scrollToAnchor(true);
     }
 }
 

@@ -7,6 +7,10 @@ body {
     padding: 0;
 }
 
+.page-scroller {
+    position: relative;
+}
+
 .page-scroller__section {
     &:nth-child(1) {
         background: red;
@@ -33,5 +37,29 @@ body {
             line-height: 32px;
             color: #fff;
         }
+    }
+}
+
+.page-scroller-nav {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 50%;
+    right: 15px;
+    transform: translate(0, -50%);
+    ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+    li {
+        margin-bottom: 10px;
+    }
+    a {
+        display: block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #000;
     }
 }
