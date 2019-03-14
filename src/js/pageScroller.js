@@ -38,8 +38,6 @@ class PageScroller {
         this.options = {
             direction: 'vertical',
             menu: null,
-            verticalCentered: true,
-            anchors: [],
             scrollingSpeed: 700,
             loopBottom: false,
             loopTop: false,
