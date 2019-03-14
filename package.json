@@ -1,7 +1,7 @@
 {
-  "name": "webpack-configurate",
-  "version": "1.0.0",
-  "description": "HTML template",
+  "name": "page-scoller",
+  "version": "2.0.0",
+  "description": "vanilla javasript library to create fullscreen scrolling",
   "main": "src/index.js",
   "scripts": {
     "dev": "webpack --config webpack.dev.js",
