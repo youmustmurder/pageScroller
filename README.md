@@ -89,6 +89,13 @@ If you want to have section with her own scroll bar, just add class ``` page-scr
 
 - ```setAllowScrolling(boolean)```: Add or remove the possibility of scrolling through sections by using the mouse wheel/trackpad or touchy gestures.
 
+- ```scrollToAnchor(boolean)```: Scrolls the page to the section with anchor from location hash. The parameter means to scroll to section with or without animation. 
+Usage example 
+```js
+window.location.hash = '#section5';
+scroller.scrollToAnchor(true);
+```
+
 # Callbacks
 
 - ```afterLoad(anchorLink, index)```: Callback fired once the sections have been loaded, after the scrolling has ended.
