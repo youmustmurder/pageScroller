@@ -472,20 +472,17 @@ class PageScroller {
         location.hash = anchorLink;
     }
 
-    activeMenuElement = () => {
-
-    }
-
     addNavigation = (sections) => {
         let nav = document.createElement('div');
-        nav.classList.add('page-scroller__nav');
-        nav.classList.add('page-scroller-nav');
+        nav.className = 'page-scroller__nav page-scroller-nav';
         let ul = document.createElement('ul');
+        ul.className = 'page-scroller-nav__list';
         Array.prototype.forEach.call(sections, (section, index) => {
             let sectionAnchor = section.getAttribute("data-anchor");
             let li = document.createElement('li');
+            li.className = 'page-scroller-nav__item';
             let a = document.createElement('a');
-            a.setAttribute('href', '#${ sectionAnchor }');
+            a.setAttribute('href', `#${ sectionAnchor }`);
             a.addEventListener('click', (e) => this.handlerClickNav(e, sectionAnchor));
             li.appendChild(a);
             ul.appendChild(li);
@@ -498,6 +495,10 @@ class PageScroller {
     handlerClickNav = (e, sectionAnchor) => {
         e.preventDefault();
         this.setUrlHash(sectionAnchor);
+        Array.prototype.forEach.call(document.querySelectorAll('.page-scroller-nav__item'), (item) => {
+            item.classList.remove('page-scroller-nav__item_active');
+        });
+        e.target.parentNode.classList.add('page-scroller-nav__item_active');
         this.scrollToAnchor(true);
     }
 }

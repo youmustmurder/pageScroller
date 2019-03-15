@@ -47,19 +47,27 @@ body {
     top: 50%;
     right: 15px;
     transform: translate(0, -50%);
-    ul {
-        margin: 0;
-        padding: 0;
-        list-style: none;
-    }
-    li {
-        margin-bottom: 10px;
-    }
+}
+
+.page-scroller-nav__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.page-scroller-nav__item {
+    margin-bottom: 10px;
     a {
         display: block;
         width: 10px;
         height: 10px;
         border-radius: 50%;
         background: #000;
+    }
+    &.page-scroller-nav__item_active {
+        a {
+            width: 15px;
+            height: 15px;
+        }
     }
 }
